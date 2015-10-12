@@ -67,18 +67,28 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: Student/Edit/5
-        public ActionResult Edit(int? id)
+        [HttpPost, ActionName("Edit")]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditPost(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Student student = db.Students.Find(id);
-            if (student == null)
+            Student studentToUpdate = db.Students.Find(id);
+            if (TryUpdateModel(studentToUpdate, "", new string[] { "LastName", "FirstName", "EnrollmentDate" }))
             {
-                return HttpNotFound();
+                try
+                {
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
+                }
+                catch(DataException /*dex*/)
+                {
+                    ModelState.AddModelError("", "Unable to save changes. Try agian, and if the problem persists, see your system administrator.");
+                }               
             }
-            return View(student);
+            return View(studentToUpdate);
         }
 
         // POST: Student/Edit/5
